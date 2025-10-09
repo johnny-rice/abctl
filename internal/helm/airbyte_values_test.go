@@ -212,13 +212,14 @@ global:
 `,
 		},
 		{
-			name:         "v2: default options",
-			opts:         ValuesOpts{TelemetryUser: "test-user"},
+			name:         "v2: minimal options",
+			opts:         ValuesOpts{TelemetryUser: "test-user", Port: 8000},
 			chartVersion: "2.0.0",
 			want: `airbyte-bootloader:
     env_vars:
         PLATFORM_LOG_FORMAT: json
 global:
+    airbyteUrl: http://localhost:8000
     auth:
         enabled: true
     env_vars:
@@ -230,12 +231,12 @@ global:
                 memory: 4Gi
 server:
     env_vars:
-        WEBAPP_URL: http://airbyte-abctl-airbyte-server-svc:80
+        WEBAPP_URL: http://airbyte-abctl-airbyte-server-svc
 `,
 		},
 		{
 			name:         "v2: all options enabled",
-			opts:         ValuesOpts{TelemetryUser: "test-user", LocalStorage: true, EnablePsql17: true, LowResourceMode: true, InsecureCookies: true, ImagePullSecret: "mysecret", DisableAuth: false},
+			opts:         ValuesOpts{TelemetryUser: "test-user", LocalStorage: true, EnablePsql17: true, LowResourceMode: true, InsecureCookies: true, ImagePullSecret: "mysecret", DisableAuth: false, Port: 8000},
 			chartVersion: "2.0.0",
 			want: `airbyte-bootloader:
     env_vars:
@@ -243,6 +244,7 @@ server:
 connectorBuilderServer:
     enabled: false
 global:
+    airbyteUrl: http://localhost:8000
     auth:
         security:
             cookieSecureSetting: '"false"'
@@ -267,7 +269,7 @@ postgresql:
 server:
     env_vars:
         JOB_RESOURCE_VARIANT_OVERRIDE: lowresource
-        WEBAPP_URL: http://airbyte-abctl-airbyte-server-svc:80
+        WEBAPP_URL: http://airbyte-abctl-airbyte-server-svc
 workloadLauncher:
     env_vars:
         CHECK_JOB_MAIN_CONTAINER_CPU_REQUEST: "0"
@@ -319,19 +321,30 @@ global:
 `,
 		},
 		{
-			name: "v2: invalid values file returns error",
+			name: "v2: invalid values file",
 			opts: ValuesOpts{
 				TelemetryUser: "test-user",
 				ValuesFile:    filepath.Join(testdataDir, "invalid.values.yaml"),
+				Port:          8000,
 			},
 			chartVersion: "2.0.0",
 			wantErr:      true,
 		},
 		{
-			name: "v2: values file not found returns error",
+			name: "v2: values file not found",
 			opts: ValuesOpts{
 				TelemetryUser: "test-user",
 				ValuesFile:    filepath.Join(testdataDir, "nonexistent.values.yaml"),
+				Port:          8000,
+			},
+			chartVersion: "2.0.0",
+			wantErr:      true,
+		},
+		{
+			name: "v2: invalid port",
+			opts: ValuesOpts{
+				TelemetryUser: "test-user",
+				Port:          0,
 			},
 			chartVersion: "2.0.0",
 			wantErr:      true,
